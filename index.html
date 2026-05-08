@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Conduit Tech Backbone — Signal Flow</title>
+<link rel="stylesheet" href="assets/style.css" />
+</head>
+<body>
+<header class="topbar">
+  <div class="title">
+    <h1>Conduit Tech Backbone</h1>
+    <p class="sub">
+      Interactive signal-flow diagram. Arrows show the direction of the
+      signal — follow the cable from <strong>source (input side)</strong>
+      to <strong>destination (output side)</strong>. Click anything for
+      details.
+    </p>
+  </div>
+</header>
+
+<main class="layout">
+  <aside class="sidebar">
+    <h2>Signal flows</h2>
+    <p class="hint">Click a flow (or press <kbd>1</kbd>–<kbd>8</kbd>) to highlight just that path.</p>
+
+    <h3 class="group-label">Video</h3>
+    <ul class="flow-list">
+      <li><button class="flow-btn" data-flow="all">Show all <span class="kbd">0</span></button></li>
+      <li><button class="flow-btn" data-flow="hdmi-tv"   style="--c:#3b82f6">HDMI · Program → TV1 / TV2 <span class="kbd">1</span></button></li>
+      <li><button class="flow-btn" data-flow="hdmi-led"  style="--c:#a855f7">HDMI · Visuals → LED Wall <span class="kbd">2</span></button></li>
+      <li><button class="flow-btn" data-flow="ndi-lyrics" style="--c:#10b981">NDI · Lyrics (C1 → C2) <span class="kbd">3</span></button></li>
+      <li><button class="flow-btn" data-flow="ndi-bible"  style="--c:#14b8a6">NDI · BibleShow (internal in C2) <span class="kbd">4</span></button></li>
+      <li><button class="flow-btn" data-flow="prompter"  style="--c:#ef4444">HDMI · Prompter → TV3 <span class="kbd">5</span></button></li>
+    </ul>
+
+    <h3 class="group-label">Audio</h3>
+    <ul class="flow-list">
+      <li><button class="flow-btn" data-flow="audio-in"  style="--c:#eab308">Mic / Instrument → Mixer <span class="kbd">6</span></button></li>
+      <li><button class="flow-btn" data-flow="audio-out" style="--c:#f97316">Mixer → Speakers <span class="goal">main goal</span> <span class="kbd">7</span></button></li>
+      <li><button class="flow-btn" data-flow="audio-usb" style="--c:#f59e0b">Mixer → Computer 1 (USB-C) <span class="kbd">8</span></button></li>
+    </ul>
+
+    <h2>Details</h2>
+    <div id="details" class="details">
+      <p class="muted">Click any device or cable to see its inputs and outputs here.</p>
+    </div>
+
+    <h2>Inventory</h2>
+    <ul class="inventory">
+      <li><strong>2</strong> computers — C1 (Mac), C2 (Windows)</li>
+      <li><strong>3</strong> TVs — TV1, TV2, TV3 (prompter)</li>
+      <li><strong>1</strong> LED wall screen</li>
+      <li><strong>1</strong> HDMI switch</li>
+      <li><strong>1</strong> sound mixer · mics/instruments · speakers</li>
+    </ul>
+  </aside>
+
+  <section class="canvas-wrap">
+    <div class="toolbar">
+      <button id="zoom-in"  title="Zoom in">＋</button>
+      <button id="zoom-out" title="Zoom out">−</button>
+      <button id="zoom-fit" title="Fit to view">Reset view</button>
+    </div>
+
+    <svg id="diagram" viewBox="0 0 1440 980" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Signal flow diagram">
+      <defs>
+        <!-- Arrow markers per flow -->
+        <marker id="arrow-default"   viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#94a3b8"/></marker>
+        <marker id="arrow-hdmi-tv"   viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#3b82f6"/></marker>
+        <marker id="arrow-hdmi-led"  viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#a855f7"/></marker>
+        <marker id="arrow-ndi-lyrics" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#10b981"/></marker>
+        <marker id="arrow-ndi-bible"  viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#14b8a6"/></marker>
+        <marker id="arrow-audio-in"   viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#eab308"/></marker>
+        <marker id="arrow-audio-out"  viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#f97316"/></marker>
+        <marker id="arrow-audio-usb"  viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#f59e0b"/></marker>
+        <marker id="arrow-prompter"   viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#ef4444"/></marker>
+
+        <filter id="soft-shadow" x="-20%" y="-20%" width="140%" height="140%">
+          <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#000" flood-opacity="0.25"/>
+        </filter>
+
+        <!-- Tiny speaker icon -->
+        <symbol id="ico-speaker" viewBox="0 0 24 24">
+          <path d="M3 9v6h4l5 4V5L7 9H3z" fill="currentColor"/>
+          <path d="M16 8c1.5 1 2.5 2.5 2.5 4S17.5 15 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+          <path d="M19 5c2.5 1.7 4 4.2 4 7s-1.5 5.3-4 7" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+        </symbol>
+        <!-- Tiny mic icon -->
+        <symbol id="ico-mic" viewBox="0 0 24 24">
+          <rect x="9" y="3" width="6" height="11" rx="3" fill="currentColor"/>
+          <path d="M5 11a7 7 0 0 0 14 0M12 18v3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+        </symbol>
+      </defs>
+
+      <g id="viewport">
+
+        <!-- ============ EDGES (drawn first so nodes sit above) ============ -->
+        <g id="edges" fill="none" stroke-width="3" stroke-linecap="round">
+
+          <!-- HDMI switch → TV1 -->
+          <path class="edge" data-flow="hdmi-tv"
+                data-info="HDMI · HDMI Switch (OUT) → TV1 (IN). Carries the program video that Computer 2 has sent to the switch."
+                d="M270,250 C270,200 260,170 245,140" />
+          <!-- HDMI switch → TV2 -->
+          <path class="edge" data-flow="hdmi-tv"
+                data-info="HDMI · HDMI Switch (OUT) → TV2 (IN). Mirrors the same program feed as TV1."
+                d="M390,250 C390,200 400,170 405,140" />
+
+          <!-- Computer 2 (program) → HDMI switch -->
+          <path class="edge" data-flow="hdmi-tv"
+                data-info="HDMI · Computer 2 program OUT → HDMI Switch IN. The switch then distributes this feed to TV1 and TV2."
+                d="M340,470 C340,420 330,400 330,350" />
+
+          <!-- Computer 1 → LED Wall -->
+          <path class="edge" data-flow="hdmi-led"
+                data-info="HDMI · Computer 1 OUT → LED Wall IN. Stage visuals / lyrics (whatever C1 is showing on its visuals output)."
+                d="M1030,470 C1030,380 1180,330 1180,240" />
+
+          <!-- NDI lyrics: C1 → C2 (over LAN, shown dashed because it's network, not a cable) -->
+          <path class="edge" data-flow="ndi-lyrics"
+                data-info="NDI over Ethernet/LAN · Computer 1 OUT (NDI source: lyrics) → Computer 2 IN (NDI receiver). Lets the program operator on C2 pull lyrics from C1 as a source."
+                d="M840,570 L560,570" stroke-dasharray="8 6" />
+
+          <!-- NDI internal: BibleShow → ProPresenter receiver inside C2 -->
+          <path class="edge" data-flow="ndi-bible"
+                data-info="NDI · INTERNAL on Computer 2: BibleShow runs locally and publishes Bible verses as an NDI source, which the program / ProPresenter app on the same PC receives. No cable — both apps live on Computer 2."
+                d="M335,605 L360,605" stroke-dasharray="6 5" />
+
+          <!-- Mics/Instruments → Mixer -->
+          <path class="edge" data-flow="audio-in"
+                data-info="XLR / TRS · Mics &amp; instruments OUT → Sound Mixer INPUT channels. This is the raw audio coming from the band / speakers (people)."
+                d="M260,875 L450,875" />
+
+          <!-- Mixer → Speakers (the goal) -->
+          <path class="edge edge-thick" data-flow="audio-out"
+                data-info="Main mix · Sound Mixer MAIN OUT → Speakers IN. This is the final house audio — what the congregation hears. The whole purpose of the mixer chain."
+                d="M680,875 L740,875" />
+
+          <!-- Mixer → Computer 1 USB-C -->
+          <path class="edge" data-flow="audio-usb"
+                data-info="USB-C · Sound Mixer USB OUT → Computer 1 USB-C IN. Sends the audio into C1 (typically for recording, streaming, or syncing with lyrics/visuals)."
+                d="M560,820 C560,720 1010,750 1010,670" />
+
+          <!-- Computer 1 → TV3 prompter -->
+          <path class="edge" data-flow="prompter"
+                data-info="HDMI · Computer 1 OUT → TV3 (Prompter) IN. Stage prompter showing lyrics, countdown timer, and notes for the worship team."
+                d="M1220,650 C1330,650 1300,750 1300,820" />
+        </g>
+
+        <!-- ============ NODES ============ -->
+        <g id="nodes" filter="url(#soft-shadow)">
+
+          <!-- TV1 -->
+          <g class="node tv" data-id="tv1">
+            <rect x="180" y="60" width="130" height="80" rx="10"/>
+            <text x="245" y="92">TV1</text>
+            <text x="245" y="115" class="sub">IN: HDMI program</text>
+          </g>
+
+          <!-- TV2 -->
+          <g class="node tv" data-id="tv2">
+            <rect x="340" y="60" width="130" height="80" rx="10"/>
+            <text x="405" y="92">TV2</text>
+            <text x="405" y="115" class="sub">IN: HDMI program</text>
+          </g>
+
+          <!-- HDMI Switch -->
+          <g class="node device" data-id="hdmi-switch">
+            <rect x="210" y="250" width="240" height="100" rx="10"/>
+            <text x="330" y="288">HDMI Switch</text>
+            <text x="330" y="312" class="sub">IN: HDMI from C2</text>
+            <text x="330" y="332" class="sub">OUT: HDMI → TV1, TV2</text>
+          </g>
+
+          <!-- Computer 2 (Windows) — outer container with inner sub-nodes -->
+          <g class="node computer" data-id="c2">
+            <rect x="140" y="470" width="420" height="220" rx="14"/>
+            <text x="350" y="500" class="title-lg">Computer 2 — Windows</text>
+            <text x="350" y="522" class="sub">Program PC · runs BibleShow + program app</text>
+
+            <!-- Inner sub-node: BibleShow -->
+            <g class="subnode" data-id="bibleshow">
+              <rect x="165" y="555" width="170" height="105" rx="8"/>
+              <text x="250" y="585">BibleShow</text>
+              <text x="250" y="608" class="sub">Local app on C2</text>
+              <text x="250" y="628" class="sub">Publishes Bible</text>
+              <text x="250" y="645" class="sub">verses as NDI source</text>
+            </g>
+
+            <!-- Inner sub-node: program receiver -->
+            <g class="subnode" data-id="c2-program">
+              <rect x="360" y="555" width="180" height="105" rx="8"/>
+              <text x="450" y="585">Program app</text>
+              <text x="450" y="608" class="sub">Receives NDI:</text>
+              <text x="450" y="625" class="sub">• Lyrics (from C1)</text>
+              <text x="450" y="642" class="sub">• BibleShow (local)</text>
+            </g>
+          </g>
+
+          <!-- Computer 1 (Mac) -->
+          <g class="node computer" data-id="c1">
+            <rect x="840" y="470" width="380" height="200" rx="14"/>
+            <text x="1030" y="505" class="title-lg">Computer 1 — Mac</text>
+            <text x="1030" y="528" class="sub">Lyrics / visuals master</text>
+
+            <text x="1030" y="565" class="io-label">INPUTS</text>
+            <text x="1030" y="585" class="sub">USB-C audio (from mixer)</text>
+
+            <text x="1030" y="615" class="io-label">OUTPUTS</text>
+            <text x="1030" y="635" class="sub">HDMI → LED Wall</text>
+            <text x="1030" y="652" class="sub">HDMI → TV3 (prompter)</text>
+            <text x="1030" y="669" class="sub">NDI → Computer 2 (lyrics)</text>
+          </g>
+
+          <!-- LED Wall -->
+          <g class="node screen" data-id="led">
+            <rect x="1080" y="60" width="220" height="180" rx="10"/>
+            <text x="1190" y="140" class="title-lg">LED Wall</text>
+            <text x="1190" y="170" class="sub">Stage screen</text>
+            <text x="1190" y="195" class="sub">IN: HDMI from C1</text>
+          </g>
+
+          <!-- Microphones / Instruments -->
+          <g class="node source" data-id="mics">
+            <rect x="60" y="820" width="200" height="110" rx="10"/>
+            <use href="#ico-mic" x="78" y="848" width="22" height="22" class="ico"/>
+            <text x="170" y="862" class="title-md">Mics &amp; Instruments</text>
+            <text x="170" y="888" class="sub">Band, vocals, lectern mic</text>
+            <text x="170" y="908" class="sub">OUT: line/mic level → Mixer</text>
+          </g>
+
+          <!-- Sound Mixer -->
+          <g class="node device" data-id="mixer">
+            <rect x="450" y="820" width="230" height="110" rx="10"/>
+            <text x="565" y="858" class="title-md">Sound Mixer</text>
+            <text x="565" y="882" class="sub">IN: Mics &amp; instruments</text>
+            <text x="565" y="900" class="sub">OUT: Main mix → Speakers</text>
+            <text x="565" y="917" class="sub">OUT: USB-C → Computer 1</text>
+          </g>
+
+          <!-- Speakers (final audio output — emphasized) -->
+          <g class="node output" data-id="speakers">
+            <rect x="740" y="820" width="200" height="110" rx="10"/>
+            <use href="#ico-speaker" x="758" y="848" width="22" height="22" class="ico"/>
+            <text x="850" y="862" class="title-md">Speakers</text>
+            <text x="850" y="888" class="sub">IN: Main mix from Mixer</text>
+            <text x="850" y="908" class="sub goal-label">Final audio → congregation</text>
+          </g>
+
+          <!-- TV3 prompter -->
+          <g class="node tv" data-id="tv3">
+            <rect x="1200" y="820" width="200" height="110" rx="10"/>
+            <text x="1300" y="862" class="title-md">TV3 — Prompter</text>
+            <text x="1300" y="888" class="sub">IN: HDMI from C1</text>
+            <text x="1300" y="908" class="sub">Lyrics · timer · notes</text>
+          </g>
+
+        </g>
+
+        <!-- Edge labels -->
+        <g id="edge-labels" class="edge-labels">
+          <text x="225" y="200" data-flow="hdmi-tv">HDMI</text>
+          <text x="425" y="200" data-flow="hdmi-tv">HDMI</text>
+          <text x="345" y="430" data-flow="hdmi-tv">HDMI · program</text>
+          <text x="1100" y="400" data-flow="hdmi-led">HDMI</text>
+          <text x="700" y="558" data-flow="ndi-lyrics">NDI · Lyrics</text>
+          <text x="350" y="595" data-flow="ndi-bible">NDI</text>
+          <text x="355" y="862" data-flow="audio-in">audio in</text>
+          <text x="710" y="862" data-flow="audio-out">main out</text>
+          <text x="800" y="745" data-flow="audio-usb">USB-C</text>
+          <text x="1325" y="720" data-flow="prompter">HDMI</text>
+        </g>
+      </g>
+    </svg>
+  </section>
+</main>
+
+<footer class="footer">
+  <span>Conduit Tech Backbone · <a href="https://github.com/crossroadsedison/conduit-tech-backbone">GitHub</a></span>
+</footer>
+
+<script src="assets/diagram.js"></script>
+</body>
+</html>
